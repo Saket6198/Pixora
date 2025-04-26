@@ -60,8 +60,10 @@ model User {
     name          String?
     email         String?   @unique
     emailVerified DateTime?
+    firstname     String?
+    lastname      String?
     image         String?
-    password      String
+    password      String?
     accounts      Account[]
     sessions      Session[]
     posts         Post[]
