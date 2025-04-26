@@ -13,7 +13,7 @@ export async function signout(){
 }
 
 export async function login(
-    prevState: string | undefined,
+    _: unknown,
     formData: FormData,
 ) {
     try {
@@ -32,7 +32,7 @@ export async function login(
 } 
 
 export async function register(
-    prevState: any | undefined,
+    _: unknown,
     formData: FormData,
 ) {
     try{
