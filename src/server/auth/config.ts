@@ -2,10 +2,11 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import DiscordProvider from "next-auth/providers/discord";
-import Email from "next-auth/providers/email";
-import { signInSchema, signUpSchema } from "~/schemas";
+// import Email from "next-auth/providers/email";
+import { signInSchema} from "~/schemas";
 import bcrypt from "bcryptjs";
 import { db } from "~/server/db";
+import GoogleProvider from "next-auth/providers/google";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -35,7 +36,14 @@ declare module "next-auth" {
  */
 export const authConfig = {
   providers: [
-    DiscordProvider,
+    DiscordProvider({
+      clientId: process.env.AUTH_DISCORD_ID?? "",
+      clientSecret: process.env.AUTH_DISCORD_SECRET ?? "",
+    }),
+    GoogleProvider({
+      clientId: process.env.AUTH_GOOGLE_ID ?? "",
+      clientSecret: process.env.AUTH_GOOGLE_SECRET ?? "",
+    }),
     Credentials({
       credentials: {
         email: {},
@@ -57,6 +65,7 @@ export const authConfig = {
               return null;
           return user;
         }catch(err){
+          console.error("Authorize error:", err);
           return null;
         }
       }
@@ -83,5 +92,8 @@ export const authConfig = {
         id: token.sub,
       },
     }),
+  },
+  pages: {
+    signIn: "/login",   // ✅ important
   },
 } satisfies NextAuthConfig;
