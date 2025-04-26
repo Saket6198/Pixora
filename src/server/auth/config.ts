@@ -94,6 +94,6 @@ export const authConfig = {
     }),
   },
   pages: {
-    signIn: "/login",   // ✅ important
+    signIn: "/login", 
   },
 } satisfies NextAuthConfig;
