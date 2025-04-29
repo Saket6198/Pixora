@@ -11,7 +11,8 @@ const config = {
     },
     typescript: {
         ignoreBuildErrors: true,
-    }
+    },
+    transpilePackages: ["next-auth"],
 };
 
 export default config;
