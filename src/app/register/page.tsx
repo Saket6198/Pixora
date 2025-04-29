@@ -16,6 +16,7 @@ import {signIn as Oauth} from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession} from "next-auth/react";
+import Image from "next/image";
 
 export default function Page() {
     const router = useRouter();
@@ -48,7 +49,7 @@ export default function Page() {
   }, [errorMessage]);
 
   if(status === "loading"){
-    return <p className="min-h-screen items-center justify-center flex flex-col gap-3"><img className="h-10 w-10 animate-bounce" alt="pixora-icon" src="/icons/canva.svg"></img>Authenticating</p>
+    return <p className="min-h-screen items-center justify-center flex flex-col gap-3"><Image className="h-10 w-10 animate-bounce" alt="pixora-icon" src="/icons/canva.svg"></Image>Authenticating</p>
   }
   if(status === "unauthenticated"){
 

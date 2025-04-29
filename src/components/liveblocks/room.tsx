@@ -9,6 +9,7 @@ import {
 } from "@liveblocks/react";
 import { LiveList, LiveObject, LiveMap } from "@liveblocks/client";
 import type { Layer } from "~/types";
+import Image from "next/image";
 
 export function Room({
   children,
@@ -37,10 +38,11 @@ export function Room({
           <ClientSideSuspense
         fallback={
           <p className="flex min-h-screen flex-col items-center justify-center gap-3 font-semibold">
-            <img
+            <Image
               className="h-10 w-10 animate-bounce"
               src="/icons/canva.svg"
-            ></img>
+              alt = "pixora-icon"
+            ></Image>
             Loading...
           </p>
         }
