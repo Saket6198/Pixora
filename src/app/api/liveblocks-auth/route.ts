@@ -2,11 +2,12 @@ import { Liveblocks } from "@liveblocks/node";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { env } from "~/env";
-const liveblocks = new Liveblocks({
-  secret: env.LIVEBLOCKS_SECRET_KEY ?? "",
-});
+
 
 export async function POST() {
+  const liveblocks = new Liveblocks({
+    secret: process.env.LIVEBLOCKS_SECRET_KEY ?? "",
+  });
   const userSession = await auth();
   const user = await db.user.findUnique({
     where: {
