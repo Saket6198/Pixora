@@ -123,3 +123,6 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* In styles/globals.css or styles.css */
+@import "react-toastify/dist/ReactToastify.css";
