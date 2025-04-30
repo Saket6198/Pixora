@@ -10,7 +10,7 @@ export default async function Page({params}: {params: ParamsType}) {
     // session?.user?.id === id; // Check if the session user ID matches the ID in the URL
 
     return (
-        <Room roomid={"room" + id}>
+        <Room roomid={"room:" + id}>
             <Canvas /> 
         </Room>
     );
