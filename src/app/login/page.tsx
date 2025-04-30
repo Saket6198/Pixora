@@ -1,121 +1,218 @@
 "use client";
 
-import type React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
-import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 import { AiFillDiscord } from "react-icons/ai";
-import { login } from "../actions/auth";
-import { useActionState, useEffect } from "react";
-import {toast, ToastContainer} from "react-toastify";
+import { signIn, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 import { Loader } from "lucide-react";
-import {signIn} from "next-auth/react";
-
+import Image from "next/image";
+import { cn } from "~/lib/utils";
 
 export default function Page() {
-    const [errorMessage, formAction, isPending] = useActionState(
-        login,
-        undefined
-    );
+  const router = useRouter();
+  const { data: session, status } = useSession();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+    const [dpending, setdpending] = useState(false);
+    const [gpending, setgpending] = useState(false);
+  
 
-    useEffect(() => {
-      if(errorMessage){
-        toast.error(errorMessage)
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/dashboard");
+    }
+  }, [status, router]);
+
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrorMessage("");
+
+    try {
+      const res = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
+
+      if (res?.error) {
+        setErrorMessage("Invalid credentials. Please try again.");
+        toast.error("Invalid credentials. Please try again.");
+      } else {
+        toast.success("Login successful!");
+        setTimeout(() => {
+          router.replace("/dashboard");
+        }, 2000);
       }
-    }, [errorMessage]);
+    } catch (err) {
+      setErrorMessage("An unknown error occurred. Please try again.");
+      toast.error("An unknown error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  // useEffect(() => {
+  //   if (errorMessage) {
+  //     toast.error(errorMessage);
+  //   }
+  // }, [errorMessage]);
 
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-zinc-900">
-      <ToastContainer theme="dark" position="top-right" autoClose={4000} hideProgressBar={true} pauseOnHover={true} />
-      <div className="shadow-input mx-auto w-full max-w-md rounded-2xl bg-white p-8 dark:bg-black">
-        <h2 className="text-2xl font-bold text-neutral-800 dark:text-neutral-200">
-          Welcome back
-        </h2>
-        <p className="mt-2 max-w-sm text-sm text-neutral-600 dark:text-neutral-300">
-          Sign in to your account to continue
-        </p>
+  if (status === "loading") {
+    return (
+      <p className="min-h-screen items-center justify-center flex flex-col gap-3">
+        <Image
+          src="/icons/canva.svg"
+          alt="pixora-icon"
+          width={40}
+          height={40}
+          className="animate-bounce"
+        />
+        Authenticating...
+      </p>
+    );
+  }
 
-        <form action={formAction} className="my-8">
-          <input type="hidden" name="redirectTo" value="/dashboard" />
-          <LabelInputContainer className="mb-4">
-            <Label htmlFor="email">Email Address</Label>
-            <Input id="email" placeholder="Enter your email" type="email" name="email" required />
-          </LabelInputContainer>
-          <LabelInputContainer className="mb-4">
-            <Label htmlFor="password">Password</Label>
-            <Input id="password" placeholder="••••••••" type="password" name="password" required minLength={8} maxLength={32}/>
-          </LabelInputContainer>
+  if (status === "unauthenticated") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-zinc-900">
 
-          <div className="mb-8 flex items-center justify-between">
-            <Link
-              href="/forgot-password"
-              className="text-sm font-medium text-neutral-700 underline dark:text-neutral-300"
-            >
-              Forgot password?
-            </Link>
-          </div>
-
-          <Button
-            className="flex justify-center items-center group/btn relative h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
-            type="submit"
-            disabled={isPending}
-          >
-            {isPending ? 
-              <Loader className="h-4 w-4 animate-spin" /> :
-              "Sign In"  
-            }
-            <BottomGradient />
-          </Button>
-
-          <div className="my-8 flex items-center">
-            <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-neutral-300 to-transparent dark:via-neutral-700" />
-            <span className="mx-4 text-sm text-neutral-600 dark:text-neutral-400">
-              or continue with
-            </span>
-            <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-neutral-300 to-transparent dark:via-neutral-700" />
-          </div>
-
-          <div className="flex flex-col space-y-4">
-            <button
-              className="group/btn shadow-input relative flex h-10 w-full items-center justify-center space-x-2 rounded-md bg-gray-50 px-4 font-medium text-black dark:bg-zinc-900 dark:shadow-[0px_0px_1px_1px_#262626]"
-              type="button"
-              onClick={() => signIn("discord", {redirectTo: "/dashboard"})}
-            >
-              <AiFillDiscord className="h-5 w-5" />
-              <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                Discord
-              </span>
-              <BottomGradient />
-            </button>
-            <button
-              className="group/btn shadow-input relative flex h-10 w-full items-center justify-center space-x-2 rounded-md bg-gray-50 px-4 font-medium text-black dark:bg-zinc-900 dark:shadow-[0px_0px_1px_1px_#262626]"
-              type="button"
-              onClick={() => signIn("google", {redirectTo: "/dashboard"})}
-            >
-              <GoogleIcon className="h-5 w-5" />
-              <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                Google
-              </span>
-              <BottomGradient />
-            </button>
-          </div>
-
-          <p className="mt-6 text-center text-sm text-neutral-600 dark:text-neutral-400">
-            Don&#39;t have an account?{" "}
-            <Link
-              href="/register"
-              className="font-medium text-neutral-800 underline dark:text-neutral-200"
-            >
-              Sign up
-            </Link>
+        <div className="shadow-input mx-auto w-full max-w-md rounded-2xl bg-white p-8 dark:bg-black">
+          <h2 className="text-2xl font-bold text-neutral-800 dark:text-neutral-200">
+            Welcome back
+          </h2>
+          <p className="mt-2 max-w-sm text-sm text-neutral-600 dark:text-neutral-300">
+            Sign in to your account to continue
           </p>
-        </form>
+
+          <form onSubmit={handleLogin} className="my-8">
+            <LabelInputContainer className="mb-4">
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                id="email"
+                placeholder="Enter your email"
+                type="email"
+                name="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </LabelInputContainer>
+
+            <LabelInputContainer className="mb-4">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                placeholder="••••••••"
+                type="password"
+                name="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
+                maxLength={32}
+              />
+            </LabelInputContainer>
+
+            <div className="mb-8 flex items-center justify-between">
+              <Link
+                href="/forgot-password"
+                className="text-sm font-medium text-neutral-700 underline dark:text-neutral-300"
+              >
+                Forgot password?
+              </Link>
+            </div>
+
+            <Button
+              className="flex justify-center items-center group/btn relative h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
+              type="submit"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Loader className="h-4 w-4 animate-spin" />
+              ) : (
+                "Sign In"
+              )}
+            </Button>
+
+            <div className="my-8 flex items-center">
+              <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-neutral-300 to-transparent dark:via-neutral-700" />
+              <span className="mx-4 text-sm text-neutral-600 dark:text-neutral-400">
+                or continue with
+              </span>
+              <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-neutral-300 to-transparent dark:via-neutral-700" />
+            </div>
+
+            <div className="flex flex-col space-y-4">
+              <button
+                className="group/btn shadow-input relative flex h-10 w-full items-center justify-center space-x-2 rounded-md bg-gray-50 px-4 font-medium text-black dark:bg-zinc-900 dark:shadow-[0px_0px_1px_1px_#262626]"
+                type="button"
+                onClick={() => {
+                  setdpending(true);
+                  signIn("discord", { redirectTo: "/dashboard" })
+                }}
+              >
+               {dpending ? 
+                  <>
+                  <AiFillDiscord className="h-5 w-5 animate-spin" />
+                  <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                    Discord
+                  </span>
+                  </> :
+                  <>
+                  <AiFillDiscord className="h-5 w-5" />
+                  <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                    Discord
+                  </span>
+                  </>
+                  }
+
+              </button>
+              <button
+                className="group/btn shadow-input relative flex h-10 w-full items-center justify-center space-x-2 rounded-md bg-gray-50 px-4 font-medium text-black dark:bg-zinc-900 dark:shadow-[0px_0px_1px_1px_#262626]"
+                type="button"
+                onClick={() => {
+                  setgpending(true);
+                signIn("google", { redirectTo: "/dashboard" })}}
+              >
+                {gpending ? 
+                  <>
+                  <GoogleIcon className="h-5 w-5 animate-spin" />
+                  <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                    Google
+                  </span>
+                  </> :
+                  <>
+                  <GoogleIcon className="h-5 w-5" />
+                  <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                    Google
+                  </span>
+                  </>
+                  }
+              </button>
+            </div>
+
+            <p className="mt-6 text-center text-sm text-neutral-600 dark:text-neutral-400">
+              Don&#39;t have an account?{" "}
+              <Link
+                href="/register"
+                className="font-medium text-neutral-800 underline dark:text-neutral-200"
+              >
+                Sign up
+              </Link>
+            </p>
+          </form>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
 
 const BottomGradient = () => {
@@ -140,6 +237,7 @@ const LabelInputContainer = ({
     </div>
   );
 };
+
 
 // const DiscordIcon = ({ className }: { className?: string }) => {
 //   return (
