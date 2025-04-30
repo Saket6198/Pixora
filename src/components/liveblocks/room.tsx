@@ -42,6 +42,8 @@ export function Room({
               className="h-10 w-10 animate-bounce"
               src="/icons/canva.svg"
               alt = "pixora-icon"
+              width={40}
+              height={40}
             ></Image>
             Loading...
           </p>
