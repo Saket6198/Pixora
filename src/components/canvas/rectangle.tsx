@@ -10,14 +10,13 @@ export default function Rectangle({
 }) {
     return (
         <g>
-            <rect style={{transform: `translate(${layer.x}px, ${layer.y}px)` }}
-            x = {layer.x}
-            y = {layer.y}
+            <rect style={{transform: `translate(${layer.x}px, ${layer.y}px)` }} 
+            strokeWidth={1}
             width={layer.width}
             height={layer.height}
             fill = {layer.fill ? colorToCss(layer.fill) : "#CCC"}
-            strokeWidth={layer.stroke ? colorToCss(layer.stroke) : "#CCC"}
-            opacity={layer.opacity}
+            stroke={layer.stroke ? colorToCss(layer.stroke) : "#000"}
+            opacity={`${layer.opacity ?? 100}%`}
             rx = {layer.cornerRadius ?? 0}
             ry = {layer.cornerRadius ?? 0}
             />
