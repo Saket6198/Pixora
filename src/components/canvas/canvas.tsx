@@ -1,71 +1,101 @@
 "use client";
 
-import { useMutation, useStorage } from "@liveblocks/react";
-import { colorToCss } from "~/utils";
+import { useMutation, useRoom, useStorage } from "@liveblocks/react";
+import { colorToCss, pointerEventToCanvasPoint } from "~/utils";
 import LayerComponent from "./layerComponent";
-import { LayerType, type RectangleLayer, type Layer, type Point } from "~/types";
+import {
+  LayerType,
+  type RectangleLayer,
+  type Layer,
+  type Point,
+  type Camera,
+  type EllipseLayer,
+  CanvasMode,
+  type CanvasState,
+} from "~/types";
 import { LiveObject, nanoid } from "@liveblocks/core";
-import { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import Toolbar from "../Toolbar/toolbar";
 
 export default function Canvas() {
+  const [canvasState, setCanvasState] = useState<CanvasState>({mode: CanvasMode.None});
   const roomColor = useStorage((root) => root.roomColor);
   const layerIds = useStorage((root) => root.layerIds);
-  const insertLayer = useMutation(({storage, setMyPresence}, layerType: LayerType.Ellipse | LayerType.Rectangle | LayerType.Text, position: Point) => {
-    const liveLayers = storage.get("layers");
-    if(liveLayers.size > 80){
-      return;
-    }
-    
-    const liveLayerIds = storage.get("layerIds");
-    const layerId = nanoid();
-    let layer: LiveObject<Layer> | null = null;
+  const room = useRoom();
+  const [camera, setCamera] = useState<Camera>({x: 0, y: 0, zoom: 1});
+  const storagestatus = room.getStorageStatus();
+  const insertLayer = useMutation(
+    (
+      { storage, setMyPresence },
+      layerType: LayerType.Ellipse | LayerType.Rectangle | LayerType.Text,
+      position: Point,
+    ) => {
+      const liveLayers = storage.get("layers");
+      if (liveLayers.size > 80) {
+        return;
+      }
 
-    if(layerType == LayerType.Rectangle) {
-      layer = new LiveObject<RectangleLayer>({
-        type: LayerType.Rectangle,
-        x: position.x,
-        y: position.y,
-        height: 100,
-        width: 100,
-        fill: {r: 255, g: 255, b: 255},
-        opacity: 1,
-        stroke: {r: 0, g: 0, b: 0},
-      });
-    }
+      const liveLayerIds = storage.get("layerIds");
+      const layerId = nanoid();
+      let layer: LiveObject<Layer> | null = null;
 
-    if(layer) {
-      liveLayerIds.push(layerId);
-      liveLayers.set(layerId, layer);
+      if (layerType == LayerType.Rectangle) {
+        layer = new LiveObject<RectangleLayer>({
+          type: LayerType.Rectangle,
+          x: position.x,
+          y: position.y,
+          height: 100,
+          width: 100,
+          fill: { r: 217, g: 217, b: 217 },
+          opacity: 100,
+          stroke: { r: 217, g: 217, b: 217 },
+        });
+      } else if(layerType == LayerType.Ellipse) {
+        layer = new LiveObject<EllipseLayer>({
+          type: LayerType.Ellipse,
+          x: position.x,
+          y: position.y,
+          height: 100,
+          width: 100,
+          fill: { r: 217, g: 217, b: 217 },
+          opacity: 100,
+          stroke: { r: 217, g: 217, b: 217 },
+        })
+      }
 
-      setMyPresence({selection: [layerId]}, {addToHistory: true})
-    }
-  }, []
-);
+      if (layer) {
+        liveLayerIds.push(layerId);
+        liveLayers.set(layerId, layer);
 
-useEffect(() => {
-  insertLayer(LayerType.Rectangle, {x: 100, y: 100})
-  }, []);
-
+        setMyPresence({ selection: [layerId] }, { addToHistory: true });
+      }
+    },
+    [],
+  );
+  const onPointerUp = useMutation(({}, e:React.PointerEvent) => {
+    const point = pointerEventToCanvasPoint(e, camera);
+    insertLayer(LayerType.Ellipse, point);
+  }, [])
   // const roomColor = {r: 255, g: 87, b: 51};
   return (
     <div className="flex h-screen w-full">
-      <main className="fixed right-0 left-0 h-screen overflow-y-auto">
+      <main className="fixed left-0 right-0 h-screen overflow-y-auto">
         <div
           style={{
-            backgroundColor: roomColor ? colorToCss(roomColor) : "#1E1E1E",
+            backgroundColor: roomColor ? colorToCss(roomColor) : "#1e1e1e",
           }}
           className="h-full w-full touch-none"
-        ></div>
-        <svg className="h-full w-full">
-          <g>
-            {layerIds?.map((layerId) => (
-              <LayerComponent key={layerId} id={layerId} />
-            ))}
-          </g>
-        </svg>
+        >
+          <svg onPointerUp={onPointerUp} className="w-full h-full">
+            <g>
+              {layerIds?.map((layerId) => (
+                <LayerComponent key={layerId} id={layerId} />
+              ))}
+            </g>
+          </svg>
+        </div>
       </main>
+      <Toolbar canvasState={canvasState} setCanvasState={(newState) => setCanvasState(newState)}/>
     </div>
   );
 }
-
-
