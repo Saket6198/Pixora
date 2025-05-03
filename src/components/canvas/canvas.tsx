@@ -11,18 +11,20 @@ import {
   type Camera,
   type EllipseLayer,
   CanvasMode,
-  type CanvasState,
 } from "~/types";
 import { LiveObject, nanoid } from "@liveblocks/core";
 import React, { useEffect, useState } from "react";
 import Toolbar from "../Toolbar/toolbar";
+import { type CanvasState } from '~/types';
 
 export default function Canvas() {
-  const [canvasState, setCanvasState] = useState<CanvasState>({mode: CanvasMode.None});
+  const [canvasState, setCanvasState] = useState<CanvasState>({
+    mode: CanvasMode.None,
+  });
   const roomColor = useStorage((root) => root.roomColor);
   const layerIds = useStorage((root) => root.layerIds);
   const room = useRoom();
-  const [camera, setCamera] = useState<Camera>({x: 0, y: 0, zoom: 1});
+  const [camera, setCamera] = useState<Camera>({ x: 0, y: 0, zoom: 1 });
   const storagestatus = room.getStorageStatus();
   const insertLayer = useMutation(
     (
@@ -50,7 +52,7 @@ export default function Canvas() {
           opacity: 100,
           stroke: { r: 217, g: 217, b: 217 },
         });
-      } else if(layerType == LayerType.Ellipse) {
+      } else if (layerType == LayerType.Ellipse) {
         layer = new LiveObject<EllipseLayer>({
           type: LayerType.Ellipse,
           x: position.x,
@@ -60,7 +62,7 @@ export default function Canvas() {
           fill: { r: 217, g: 217, b: 217 },
           opacity: 100,
           stroke: { r: 217, g: 217, b: 217 },
-        })
+        });
       }
 
       if (layer) {
@@ -72,21 +74,28 @@ export default function Canvas() {
     },
     [],
   );
-  const onPointerUp = useMutation(({}, e:React.PointerEvent) => {
-    const point = pointerEventToCanvasPoint(e, camera);
-    insertLayer(LayerType.Ellipse, point);
-  }, [])
+  const onPointerUp = useMutation(
+    ({}, e: React.PointerEvent) => {
+      const point = pointerEventToCanvasPoint(e, camera);
+      if (canvasState.mode === CanvasMode.None) {
+        setCanvasState({ mode: CanvasMode.None });
+      } else if (canvasState.mode === CanvasMode.inserting) {
+        insertLayer(canvasState.layerType, point);
+      }
+    },
+    [setCanvasState, insertLayer, canvasState],
+  );
   // const roomColor = {r: 255, g: 87, b: 51};
   return (
     <div className="flex h-screen w-full">
-      <main className="fixed left-0 right-0 h-screen overflow-y-auto">
+      <main className="fixed right-0 left-0 h-screen overflow-y-auto">
         <div
           style={{
             backgroundColor: roomColor ? colorToCss(roomColor) : "#1e1e1e",
           }}
           className="h-full w-full touch-none"
         >
-          <svg onPointerUp={onPointerUp} className="w-full h-full">
+          <svg onPointerUp={onPointerUp} className="h-full w-full">
             <g>
               {layerIds?.map((layerId) => (
                 <LayerComponent key={layerId} id={layerId} />
@@ -95,7 +104,10 @@ export default function Canvas() {
           </svg>
         </div>
       </main>
-      <Toolbar canvasState={canvasState} setCanvasState={(newState) => setCanvasState(newState)}/>
+      <Toolbar
+        canvasState={canvasState}
+        setCanvasState={(newState) => setCanvasState(newState)}
+      />
     </div>
   );
 }
