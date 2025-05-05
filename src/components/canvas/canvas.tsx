@@ -8,14 +8,14 @@ import {
   type RectangleLayer,
   type Layer,
   type Point,
-  type Camera,
   type EllipseLayer,
   CanvasMode,
+  type Camera,
 } from "~/types";
 import { LiveObject, nanoid } from "@liveblocks/core";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Toolbar from "../Toolbar/toolbar";
-import { type CanvasState } from '~/types';
+import { type CanvasState } from "~/types";
 
 export default function Canvas() {
   const [canvasState, setCanvasState] = useState<CanvasState>({
@@ -85,6 +85,13 @@ export default function Canvas() {
     },
     [setCanvasState, insertLayer, canvasState],
   );
+  const onWheel = useCallback((e: React.WheelEvent) => {
+    setCamera((camera) => ({
+      x: camera.x - e.deltaX,
+      y: camera.y - e.deltaY,
+      zoom: camera.zoom
+    }))
+  }, [])
   // const roomColor = {r: 255, g: 87, b: 51};
   return (
     <div className="flex h-screen w-full">
@@ -95,8 +102,13 @@ export default function Canvas() {
           }}
           className="h-full w-full touch-none"
         >
-          <svg onPointerUp={onPointerUp} className="h-full w-full">
-            <g>
+          <svg onWheel={onWheel} onPointerUp={onPointerUp} onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove} className="h-full w-full">
+            <g
+              style={{
+                transform: `translate(${camera.x}px, ${camera.y}px) scale(${camera.zoom})`,
+              }}
+            >
               {layerIds?.map((layerId) => (
                 <LayerComponent key={layerId} id={layerId} />
               ))}
@@ -107,6 +119,14 @@ export default function Canvas() {
       <Toolbar
         canvasState={canvasState}
         setCanvasState={(newState) => setCanvasState(newState)}
+        zoomIn={() => {
+          setCamera((camera) => ({ ...camera, zoom: camera.zoom + 0.1 }));
+        }}
+        zoomOut={() => {
+          setCamera((camera) => ({ ...camera, zoom: camera.zoom - 0.1 }));
+        }}
+        canZoomIn={camera.zoom < 2}
+        canZoomOut={camera.zoom > 0.5}
       />
     </div>
   );
