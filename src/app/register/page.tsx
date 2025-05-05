@@ -16,6 +16,7 @@ import {signIn as Oauth} from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession} from "next-auth/react";
+import Image from "next/image";
 
 export default function Page() {
     const router = useRouter();
@@ -48,7 +49,16 @@ export default function Page() {
   }, [errorMessage]);
 
   if(status === "loading"){
-    return <p className="min-h-screen items-center justify-center flex flex-col gap-3"><img className="h-10 w-10 animate-bounce" alt="pixora-icon" src="/icons/canva.svg"></img>Authenticating</p>
+<p className="min-h-screen items-center justify-center flex flex-col gap-3">
+    <Image
+      src="/icons/canva.svg"
+      alt="pixora-icon"
+      width={40}
+      height={40}
+      className="animate-bounce"
+    />
+    Authenticating
+  </p>
   }
   if(status === "unauthenticated"){
 
@@ -74,7 +84,7 @@ export default function Page() {
                   name="firstname"
                   required
                   minLength={2}
-                  maxLength={32}
+                  maxLength={18} 
                 />
               </LabelInputContainer>
               <LabelInputContainer>
@@ -86,7 +96,7 @@ export default function Page() {
                   name="lastname"
                   required
                   minLength={2}
-                  maxLength={32}
+                  maxLength={18}
                 />
               </LabelInputContainer>
             </div>
@@ -98,6 +108,7 @@ export default function Page() {
                 type="email"
                 name="email"
                 required
+                maxLength={28}
               />
             </LabelInputContainer>
             <LabelInputContainer className="mb-8">

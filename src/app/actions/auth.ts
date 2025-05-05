@@ -11,13 +11,14 @@ import { AuthError } from "next-auth";
 export async function signout(){
     await signOut();
 }
-
 export async function login(
     _: unknown,
     formData: FormData,
 ) {
     try {
-        await signIn("credentials", formData);
+        await signIn("credentials", {
+            formData,
+    });
     } catch (err: unknown) {
         if (err instanceof AuthError) {
             switch (err.type) {

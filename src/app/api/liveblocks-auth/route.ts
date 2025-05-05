@@ -6,7 +6,7 @@ import { env } from "~/env";
 
 export async function POST() {
   const liveblocks = new Liveblocks({
-    secret: process.env.LIVEBLOCKS_SECRET_KEY ?? "",
+    secret: env.LIVEBLOCKS_SECRET_KEY ?? "",
   });
   const userSession = await auth();
   const user = await db.user.findUnique({

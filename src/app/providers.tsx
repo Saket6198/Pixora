@@ -11,7 +11,7 @@ interface ProvidersProps {
 // This component simply wraps its children with the SessionProvider
 export default function Providers({ children }: ProvidersProps) {
   return (
-    <SessionProvider>
+    <SessionProvider refetchOnWindowFocus={false}>
       {children}
     </SessionProvider>
   );
